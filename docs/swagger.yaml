@@ -1,0 +1,93 @@
+basePath: /
+definitions:
+  api.request:
+    properties:
+      short:
+        type: string
+      url:
+        type: string
+    type: object
+host: localhost:3100
+info:
+  contact:
+    email: fiber@swagger.io
+    name: API Support
+  description: URL shortener app
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Quick URL API
+  version: "1.0"
+paths:
+  /:
+    post:
+      consumes:
+      - application/json
+      description: Create a short URL.
+      parameters:
+      - description: URL
+        in: body
+        name: url
+        required: true
+        schema:
+          $ref: '#/definitions/api.request'
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Create a short URL.
+      tags:
+      - api
+  /{key}:
+    delete:
+      description: Delete a short URL.
+      parameters:
+      - description: Key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Delete a short URL.
+      tags:
+      - api
+    get:
+      description: Redirect to the original URL.
+      parameters:
+      - description: Key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "301":
+          description: Moved Permanently
+          schema:
+            type: string
+      summary: Redirect to the original URL.
+      tags:
+      - api
+  /allkv:
+    get:
+      description: Get all key-value pairs.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get all key-value pairs.
+      tags:
+      - api
+swagger: "2.0"

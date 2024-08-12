@@ -18,12 +18,11 @@ windows: $(WINDOWS) ## Build for Windows
 
 linux: $(LINUX) ## Build for Linux
 
-
 $(WINDOWS):
-	env GOOS=windows GOARCH=amd64 go build -v -o $(WINDOWS) -ldflags="-X main.version=$(VERSION)"  ./cmd/...
+	env GOOS=windows GOARCH=amd64 go build -v -o $(WINDOWS) -ldflags="-X main.version=$(VERSION)"  .
 
 $(LINUX):
-	env GOOS=linux GOARCH=amd64  go build -v -o $(LINUX) -ldflags="-s -w -X main.version=$(VERSION)"  ./cmd/...
+	env GOOS=linux GOARCH=amd64  go build -v -o $(LINUX) -ldflags="-s -w -X main.version=$(VERSION)"  .
 
 clean: ## Remove previous build
 	rm -rf $(BUILD_DIR)
