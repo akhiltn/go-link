@@ -3,6 +3,7 @@ package data
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/boltdb/bolt"
@@ -41,7 +42,15 @@ func initBoltDB() (*boltDB, error) {
 	log.Println("Initializing BoltDB")
 	var dbPath string
 	if runtime.GOOS == "windows" {
-		dbPath = "%HOMEPATH%/.quick-url/quick-url.db"
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			log.Println("Error getting home directory:", err)
+			return nil, err
+		}
+		dbPath = filepath.Join(homeDir, ".quick-url", "quick-url.db")
+		if _, err := os.Stat(filepath.Dir(dbPath)); os.IsNotExist(err) {
+			os.MkdirAll(filepath.Dir(dbPath), os.ModePerm)
+		}
 	} else {
 		dbPath = "quick-url.db"
 	}

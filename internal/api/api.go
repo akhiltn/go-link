@@ -1,4 +1,3 @@
-
 package api
 
 import (
@@ -29,7 +28,7 @@ func GoToURL(c *fiber.Ctx) error {
 
 	value, err := db.Get(key)
 	if err != nil {
-    value = "https://www.google.com/search?q="+key
+		value = "https://www.google.com/search?q=" + key
 	}
 
 	log.Printf("Redirecting to: %s", value)
@@ -53,7 +52,7 @@ func CreateShortURL(c *fiber.Ctx) error {
 			"msg":   "Invalid request body",
 		})
 	}
-	if !govalidator.IsURL(body.Url) || !helper.RemoveDomainError(body.Url){
+	if !govalidator.IsURL(body.Url) || !helper.RemoveDomainError(body.Url) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   "Invalid URL",
@@ -70,4 +69,3 @@ func CreateShortURL(c *fiber.Ctx) error {
 	}
 	return c.SendStatus(fiber.StatusCreated)
 }
-
