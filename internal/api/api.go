@@ -69,3 +69,44 @@ func CreateShortURL(c *fiber.Ctx) error {
 	}
 	return c.SendStatus(fiber.StatusCreated)
 }
+
+func DeleteShortURL(c *fiber.Ctx) error {
+	db, err := data.GetDB()
+	if err != nil {
+		log.Printf("Error getting DB instance: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Internal server error",
+		})
+	}
+	key := c.Params("key")
+	err = db.Delete(key)
+	if err != nil {
+		log.Printf("Error deleting key %s: %v", key, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Internal server error",
+		})
+	}
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func GetAllKV(c *fiber.Ctx) error {
+	db, err := data.GetDB()
+	if err != nil {
+		log.Printf("Error getting DB instance: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Internal server error",
+		})
+	}
+	kvs, err := db.GetAllKeyValues()
+	if err != nil {
+		log.Printf("Error getting key-value pairs: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Internal server error",
+		})
+	}
+	return c.JSON(kvs)
+}

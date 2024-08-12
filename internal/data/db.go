@@ -9,6 +9,7 @@ type queries interface {
 	Set(string, string) error
 	Delete(string) error
 	Close() error
+	GetAllKeyValues() (map[string]string, error)
 }
 
 func GetDB() (queries, error) {

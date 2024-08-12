@@ -15,6 +15,7 @@ type boltDB struct {
 
 var (
 	instance *boltDB
+	appPath  = ""
 )
 
 const (
@@ -48,6 +49,7 @@ func initBoltDB() (*boltDB, error) {
 			return nil, err
 		}
 		dbPath = filepath.Join(homeDir, ".quick-url", "quick-url.db")
+		appPath = filepath.Dir(dbPath)
 		if _, err := os.Stat(filepath.Dir(dbPath)); os.IsNotExist(err) {
 			os.MkdirAll(filepath.Dir(dbPath), os.ModePerm)
 		}
@@ -108,4 +110,22 @@ func (b *boltDB) Delete(key string) error {
 		}
 		return bucket.Delete([]byte(key))
 	})
+}
+
+func (b *boltDB) GetAllKeyValues() (map[string]string, error) {
+	var kvMap = make(map[string]string)
+	err := b.db.View(func(tx *bolt.Tx) error {
+		// Iterate over each bucket
+		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+			// Iterate over each key-value pair in the bucket
+			return b.ForEach(func(k, v []byte) error {
+				kvMap[string(k)] = string(v)
+				return nil
+			})
+		})
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return kvMap, err
 }
