@@ -6,6 +6,6 @@ import (
 )
 
 func AppRouteInit(app *fiber.App) {
-  app.Get("/:key", api.RedirectToURL)
-  app.Post("/", api.CreateShortURL)
+	app.Get("/:key", api.GoToURL)
+	app.Post("/", api.CreateShortURL)
 }

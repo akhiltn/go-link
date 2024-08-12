@@ -11,7 +11,7 @@ type queries interface {
 	Close() error
 }
 
-func InitDB() (queries, error) {
-	log.Println("Initializing DB")
+func GetDB() (queries, error) {
+	log.Println("Getting DB")
 	return initBoltDB()
 }

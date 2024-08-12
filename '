@@ -16,7 +16,10 @@ type request struct {
 }
 
 func GoToURL(c *fiber.Ctx) error {
+	log.Println("GoToURL called")
+  defer log.Println("GoToURL called - End")
 	key := c.Params("key")
+	log.Printf("Key: %s", key)
 
 	db, err := data.GetDB()
 	if err != nil {
@@ -29,7 +32,11 @@ func GoToURL(c *fiber.Ctx) error {
 
 	value, err := db.Get(key)
 	if err != nil {
-    value = "https://www.google.com/search?q="+key
+		log.Printf("Error getting value for key %s: %v", key, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Internal server error",
+		})
 	}
 
 	log.Printf("Redirecting to: %s", value)
@@ -53,7 +60,7 @@ func CreateShortURL(c *fiber.Ctx) error {
 			"msg":   "Invalid request body",
 		})
 	}
-	if !govalidator.IsURL(body.Url) || !helper.RemoveDomainError(body.Url){
+	if !govalidator.IsURL(body.Url) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   "Invalid URL",
@@ -71,3 +78,10 @@ func CreateShortURL(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
+// func validateAndCleanUrl(url string) (string, error) {
+// 	if !govalidator.IsURL(url) || !helper.RemoveDomainError(url) {
+// 		return "", errors.New("invalid URL")
+// 	}
+// 	url = helper.EnforceHTTP(url)
+// 	return url, nil
+// }
