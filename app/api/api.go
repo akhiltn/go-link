@@ -14,7 +14,7 @@ type request struct {
 	Short string `json:"short"`
 }
 
-// GoToURL method to redirect to the original URL.
+// ResolveShortURL method to redirect to the original URL.
 // @Description Redirect to the original URL.
 // @Summary Redirect to the original URL.
 // @Tags api
@@ -22,9 +22,8 @@ type request struct {
 // @Param key path string true "Key"
 // @Success 301 {string} string "Moved Permanently"
 // @Router /{key} [get]
-func GoToURL(c *fiber.Ctx) error {
+func ResolveShortURL(c *fiber.Ctx) error {
 	key := c.Params("key")
-
 	db, err := data.GetDB()
 	if err != nil {
 		log.Printf("Error getting DB instance: %v", err)
@@ -33,12 +32,10 @@ func GoToURL(c *fiber.Ctx) error {
 			"msg":   "Internal server error",
 		})
 	}
-
 	value, err := db.Get(key)
 	if err != nil {
 		value = "https://www.google.com/search?q=" + key
 	}
-
 	log.Printf("Redirecting to: %s", value)
 	return c.Redirect(value, fiber.StatusMovedPermanently)
 }
@@ -83,6 +80,7 @@ func CreateShortURL(c *fiber.Ctx) error {
 			"msg":   "Internal server error",
 		})
 	}
+	log.Printf("Created key %s with value %s", body.Short, body.Url)
 	return c.SendStatus(fiber.StatusCreated)
 }
 
