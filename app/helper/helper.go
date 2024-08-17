@@ -13,15 +13,12 @@ func EnforceHTTP(url string) string {
 }
 
 func RemoveDomainError(url string) bool {
-	if url == os.Getenv("DOMAIN") {
-		return false
-	}
 	newURL := strings.Replace(url, "http://", "", 1)
 	newURL = strings.Replace(url, "https://", "", 1)
 	newURL = strings.Replace(url, "www.", "", 1)
 	newURL = strings.Replace(url, "www.", "", 1)
 	newURL = strings.Split(url, "/")[0]
-	if newURL == os.Getenv("DOMAIN") {
+	if strings.ToUpper(newURL) == strings.ToUpper(os.Getenv("DOMAIN")) {
 		return false
 	}
 	return true
