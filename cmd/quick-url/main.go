@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/akhiltn/go-quick-url/app/data"
-	"github.com/akhiltn/go-quick-url/app/routes"
 	_ "github.com/akhiltn/go-quick-url/docs"
+	"github.com/akhiltn/go-quick-url/internal/data"
+	"github.com/akhiltn/go-quick-url/internal/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"

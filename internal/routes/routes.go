@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/akhiltn/go-quick-url/app/api"
+	"github.com/akhiltn/go-quick-url/internal/api"
 	"github.com/gofiber/fiber/v2"
 )
 
