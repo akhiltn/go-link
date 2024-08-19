@@ -1,7 +1,7 @@
 # go-quick-url
 
 ## Overview
-**go-quick-url** is a URL shortening service built with Go, ObjectBox, and Fiber. This project aims to provide a simple and efficient way to shorten URLs and manage them.
+**go-quick-url** is a URL shortening service built with Go, BoltDB, and Fiber. This project aims to provide a simple and efficient way to shorten URLs and manage them.
 
 ## Features
 - URL shortening
@@ -38,9 +38,8 @@
 
 ### API Endpoints
 
-- **POST /shorten**
-    - Request: `{ "url": "https://example.com" }`
-    - Response: `{ "shortened_url": "http://localhost:3000/abc123" }`
+- **POST /
+    - Request: `{ "url": "https://example.com", "short": "example" }`
 
 - **GET /:shortened_url**
     - Redirects to the original URL.
@@ -49,4 +48,4 @@
 
 To shorten a URL:
 ```sh
-curl -X POST http://localhost:3000/shorten -d '{"url":"https://example.com"}' -H "Content-Type: application/json"
+curl -X POST http://localhost:3000/ -d '{"url":"https://example.com", "short": "example" }' -H "Content-Type: application/json"
