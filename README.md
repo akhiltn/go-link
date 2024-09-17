@@ -1,7 +1,7 @@
-# go-quick-url
+# go-link
 
 ## Overview
-**go-quick-url** is a URL shortening service built with Go, BoltDB, and Fiber. This project aims to provide a simple and efficient way to shorten URLs and manage them.
+**go-link** is a URL shortening service built with Go, BoltDB, and Fiber. This project aims to provide a simple and efficient way to shorten URLs and manage them.
 
 ## Features
 - URL shortening
@@ -20,8 +20,8 @@
 
 1. **Clone the repository:**
     ```sh
-    git clone https://github.com/akhiltn/go-quick-url.git
-    cd go-quick-url
+    git clone https://github.com/akhiltn/go-link.git
+    cd go-link
     ```
 
 2. **Install dependencies:**
