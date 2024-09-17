@@ -1,4 +1,4 @@
-EXECUTABLE=quick-url
+EXECUTABLE=go-link
 BUILD_DIR := bin
 COVERAGE_DIR := $(BUILD_DIR)/coverage
 COVERAGE_FILE := $(COVERAGE_DIR)/coverage.out
@@ -25,10 +25,10 @@ windows: $(WINDOWS) ## Build for Windows
 linux: $(LINUX) ## Build for Linux
 
 $(WINDOWS):
-	env GOOS=windows GOARCH=amd64 go build -v -o $(WINDOWS) -ldflags="-X main.version=$(VERSION)" ./cmd/quick-url
+	env GOOS=windows GOARCH=amd64 go build -v -o $(WINDOWS) -ldflags="-X main.version=$(VERSION)" ./cmd/go-link
 
 $(LINUX):
-	env GOOS=linux GOARCH=amd64 go build -v -o $(LINUX) -ldflags="-s -w -X main.version=$(VERSION)" ./cmd/quick-url
+	env GOOS=linux GOARCH=amd64 go build -v -o $(LINUX) -ldflags="-s -w -X main.version=$(VERSION)" ./cmd/go-link
 
 clean: ## Remove previous build
 	rm -rf $(BUILD_DIR)

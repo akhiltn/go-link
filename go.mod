@@ -1,6 +1,6 @@
-module github.com/akhiltn/go-quick-url
+module github.com/akhiltn/go-link
 
-go 1.22.5
+go 1.23.0
 
 require (
 	github.com/boltdb/bolt v1.3.1

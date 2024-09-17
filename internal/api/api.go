@@ -3,8 +3,8 @@ package api
 import (
 	"log"
 
-	"github.com/akhiltn/go-quick-url/internal/data"
-	"github.com/akhiltn/go-quick-url/internal/helper"
+	"github.com/akhiltn/go-link/internal/data"
+	"github.com/akhiltn/go-link/internal/helper"
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 )

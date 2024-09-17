@@ -152,7 +152,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:3100",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Quick URL API",
+	Title:            "Go Link",
 	Description:      "URL shortener app",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

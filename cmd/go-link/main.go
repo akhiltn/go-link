@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/akhiltn/go-quick-url/docs"
-	"github.com/akhiltn/go-quick-url/internal/data"
-	"github.com/akhiltn/go-quick-url/internal/routes"
+	_ "github.com/akhiltn/go-link/docs"
+	"github.com/akhiltn/go-link/internal/data"
+	"github.com/akhiltn/go-link/internal/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// @title Quick URL API
+// @title Go Link
 // @version 1.0
 // @description URL shortener app
 // @termsOfService http://swagger.io/terms/

@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "URL shortener app",
-        "title": "Quick URL API",
+        "title": "Go Link",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",

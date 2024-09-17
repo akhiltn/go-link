@@ -15,7 +15,6 @@ type boltDB struct {
 
 var (
 	instance *boltDB
-	appPath  = ""
 )
 
 const (
@@ -48,13 +47,15 @@ func initBoltDB() (*boltDB, error) {
 			log.Println("Error getting home directory:", err)
 			return nil, err
 		}
-		dbPath = filepath.Join(homeDir, ".quick-url", "quick-url.db")
-		appPath = filepath.Dir(dbPath)
+		dbPath = filepath.Join(homeDir, ".go-link", "go-link.db")
 		if _, err := os.Stat(filepath.Dir(dbPath)); os.IsNotExist(err) {
-			os.MkdirAll(filepath.Dir(dbPath), os.ModePerm)
+			err = os.MkdirAll(filepath.Dir(dbPath), os.ModePerm)
+      if err != nil {
+        log.Printf("Failed to create directory: %v", err)
+      }
 		}
 	} else {
-		dbPath = "quick-url.db"
+		dbPath = "go-link.db"
 	}
 	instance, err = newBoltDB(dbPath)
 	if err != nil {
