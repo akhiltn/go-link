@@ -37,7 +37,7 @@ func ResolveShortURL(c *fiber.Ctx) error {
 		value = "https://www.google.com/search?q=" + key
 	}
 	log.Printf("Redirecting to: %s", value)
-	return c.Redirect(value, fiber.StatusMovedPermanently)
+	return c.Redirect(value, fiber.StatusFound)
 }
 
 // CreateShortURL method to create a short URL.
