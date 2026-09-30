@@ -7,6 +7,7 @@ COVERAGE_HTML := $(COVERAGE_DIR)/coverage.html
 WINDOWS=$(BUILD_DIR)/$(EXECUTABLE)_windows_amd64.exe
 LINUX=$(BUILD_DIR)/$(EXECUTABLE)_linux_amd64
 VERSION=$(shell git describe --tags --always --long --dirty)
+GO_SOURCES := $(shell find cmd internal docs -type f -name '*.go')
 
 .PHONY: all build test windows linux clean help
 
@@ -25,6 +26,7 @@ windows: $(WINDOWS) ## Build for Windows
 
 linux: $(LINUX) ## Build for Linux
 
+$(NATIVE) $(WINDOWS) $(LINUX): $(GO_SOURCES) go.mod go.sum Makefile
 
 $(NATIVE):
 	mkdir -p $(BUILD_DIR)
