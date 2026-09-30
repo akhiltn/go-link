@@ -1,5 +1,6 @@
 EXECUTABLE=go-link
 BUILD_DIR := bin
+NATIVE := $(BUILD_DIR)/$(EXECUTABLE)
 COVERAGE_DIR := $(BUILD_DIR)/coverage
 COVERAGE_FILE := $(COVERAGE_DIR)/coverage.out
 COVERAGE_HTML := $(COVERAGE_DIR)/coverage.html
@@ -7,9 +8,9 @@ WINDOWS=$(BUILD_DIR)/$(EXECUTABLE)_windows_amd64.exe
 LINUX=$(BUILD_DIR)/$(EXECUTABLE)_linux_amd64
 VERSION=$(shell git describe --tags --always --long --dirty)
 
-.PHONY: all test clean
+.PHONY: all build test windows linux clean help
 
-all: clean build test ## Build and run tests
+all: build test ## Build and run tests
 
 test: ## Run unit tests with coverage
 	mkdir -p $(COVERAGE_DIR)
@@ -17,17 +18,24 @@ test: ## Run unit tests with coverage
 	go tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
 	@echo "Coverage report generated at $(COVERAGE_HTML)"
 
-build: windows linux ## Build binaries
+build: $(NATIVE) windows linux ## Build native and cross-platform binaries
 	@echo version: $(VERSION)
 
 windows: $(WINDOWS) ## Build for Windows
 
 linux: $(LINUX) ## Build for Linux
 
+
+$(NATIVE):
+	mkdir -p $(BUILD_DIR)
+	go build -v -o $(NATIVE) -ldflags="-X main.version=$(VERSION)" ./cmd/go-link
+
 $(WINDOWS):
+	mkdir -p $(BUILD_DIR)
 	env GOOS=windows GOARCH=amd64 go build -v -o $(WINDOWS) -ldflags="-X main.version=$(VERSION)" ./cmd/go-link
 
 $(LINUX):
+	mkdir -p $(BUILD_DIR)
 	env GOOS=linux GOARCH=amd64 go build -v -o $(LINUX) -ldflags="-s -w -X main.version=$(VERSION)" ./cmd/go-link
 
 clean: ## Remove previous build
