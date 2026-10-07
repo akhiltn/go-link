@@ -1,18 +1,12 @@
 package data
 
-import (
-	"log"
-)
+import "github.com/boltdb/bolt"
 
-type queries interface {
-	Get(string) (string, error)
-	Set(string, string) error
-	Delete(string) error
-	Close() error
-	GetAllKeyValues() (map[string]string, error)
+// BoltDB adapts BoltDB to the short URL repository interface.
+type BoltDB struct {
+	db *bolt.DB
 }
 
-func GetDB() (queries, error) {
-	log.Println("Getting DB")
-	return initBoltDB()
+func (b *BoltDB) Close() error {
+	return b.db.Close()
 }

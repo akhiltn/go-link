@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,39 +10,22 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-type boltDB struct {
-	db *bolt.DB
-}
-
-var (
-	instance *boltDB
-)
-
 const (
 	dbname = "DB"
 )
 
-func newBoltDB(dbPath string) (*boltDB, error) {
+func newBoltDB(dbPath string) (*BoltDB, error) {
 	db, err := bolt.Open(os.ExpandEnv(dbPath), 0600, nil)
 	if err != nil {
 		log.Printf("Error opening BoltDB: %v", err)
 		return nil, err
 	}
-	return &boltDB{db: db}, nil
+	return &BoltDB{db: db}, nil
 }
 
-func (b *boltDB) Close() error {
-	return b.db.Close()
-}
-
-func initBoltDB() (*boltDB, error) {
-	if instance != nil {
-		return instance, nil
-	}
-	var err error
+func OpenBoltDB(dbPath string) (*BoltDB, error) {
 	log.Println("Initializing BoltDB")
-	var dbPath string
-	if runtime.GOOS == "windows" {
+	if dbPath == "" && runtime.GOOS == "windows" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			log.Println("Error getting home directory:", err)
@@ -50,16 +34,18 @@ func initBoltDB() (*boltDB, error) {
 		dbPath = filepath.Join(homeDir, ".go-link", "go-link.db")
 		if _, err := os.Stat(filepath.Dir(dbPath)); os.IsNotExist(err) {
 			err = os.MkdirAll(filepath.Dir(dbPath), os.ModePerm)
-      if err != nil {
-        log.Printf("Failed to create directory: %v", err)
-      }
+			if err != nil {
+				log.Printf("Failed to create directory: %v", err)
+				return nil, err
+			}
 		}
-	} else {
+	} else if dbPath == "" {
 		dbPath = "go-link.db"
 	}
-	instance, err = newBoltDB(dbPath)
+	instance, err := newBoltDB(dbPath)
 	if err != nil {
 		log.Printf("Failed to initialize BoltDB: %v", err)
+		return nil, err
 	} else {
 		// Ensure the bucket is created
 		err = instance.db.Update(func(tx *bolt.Tx) error {
@@ -68,15 +54,17 @@ func initBoltDB() (*boltDB, error) {
 		})
 		if err != nil {
 			log.Printf("Failed to create bucket: %v", err)
+			_ = instance.Close()
+			return nil, err
 		}
-	}
-	if instance == nil {
-		return nil, bolt.ErrDatabaseNotOpen
 	}
 	return instance, err
 }
 
-func (b *boltDB) Get(key string) (string, error) {
+func (b *BoltDB) Get(ctx context.Context, key string) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	var value string
 	err := b.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dbname))
@@ -93,7 +81,10 @@ func (b *boltDB) Get(key string) (string, error) {
 	return value, err
 }
 
-func (b *boltDB) Set(key string, value string) error {
+func (b *BoltDB) Set(ctx context.Context, key string, value string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	return b.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(dbname))
 		if err != nil {
@@ -103,7 +94,10 @@ func (b *boltDB) Set(key string, value string) error {
 	})
 }
 
-func (b *boltDB) Delete(key string) error {
+func (b *BoltDB) Delete(ctx context.Context, key string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	return b.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dbname))
 		if bucket == nil {
@@ -113,20 +107,21 @@ func (b *boltDB) Delete(key string) error {
 	})
 }
 
-func (b *boltDB) GetAllKeyValues() (map[string]string, error) {
-	var kvMap = make(map[string]string)
+func (b *BoltDB) GetAllKeyValues(ctx context.Context) (map[string]string, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	var kvMap map[string]string
 	err := b.db.View(func(tx *bolt.Tx) error {
-		// Iterate over each bucket
-		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
-			// Iterate over each key-value pair in the bucket
-			return b.ForEach(func(k, v []byte) error {
-				kvMap[string(k)] = string(v)
-				return nil
-			})
+		bucket := tx.Bucket([]byte(dbname))
+		if bucket == nil {
+			return bolt.ErrBucketNotFound
+		}
+		kvMap = make(map[string]string, bucket.Stats().KeyN)
+		return bucket.ForEach(func(k, v []byte) error {
+			kvMap[string(k)] = string(v)
+			return nil
 		})
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
 	return kvMap, err
 }
