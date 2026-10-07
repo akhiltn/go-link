@@ -7,6 +7,7 @@ import (
 	_ "github.com/akhiltn/go-link/docs"
 	"github.com/akhiltn/go-link/internal/data"
 	"github.com/akhiltn/go-link/internal/routes"
+	"github.com/akhiltn/go-link/internal/shorturl"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -28,11 +29,12 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Error loading .env file")
 	}
-	db, err := data.GetDB()
+	db, err := data.OpenBoltDB(os.Getenv("DB_PATH"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	service := shorturl.NewService(db)
 	app := fiber.New()
 	// Configure CORS settings
 	app.Use(cors.New(cors.Config{
@@ -42,7 +44,7 @@ func main() {
 	}))
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	app.Use(healthcheck.New())
-	routes.AppRouteInit(app)
+	routes.AppRouteInit(app, service)
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {

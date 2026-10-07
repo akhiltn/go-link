@@ -1,9 +1,9 @@
 package api
 
 import (
+	"context"
 	"log"
 
-	"github.com/akhiltn/go-link/internal/data"
 	"github.com/akhiltn/go-link/internal/helper"
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +14,23 @@ type request struct {
 	Short string `json:"short"`
 }
 
+// Store is the persistence behavior required by the HTTP handlers.
+type Store interface {
+	Get(context.Context, string) (string, error)
+	Set(context.Context, string, string) error
+	Delete(context.Context, string) error
+	GetAllKeyValues(context.Context) (map[string]string, error)
+}
+
+// Handler groups the API handlers with their storage dependency.
+type Handler struct {
+	store Store
+}
+
+func NewHandler(store Store) *Handler {
+	return &Handler{store: store}
+}
+
 // ResolveShortURL method to redirect to the original URL.
 // @Description Redirect to the original URL.
 // @Summary Redirect to the original URL.
@@ -22,17 +39,9 @@ type request struct {
 // @Param key path string true "Key"
 // @Success 301 {string} string "Moved Permanently"
 // @Router /{key} [get]
-func ResolveShortURL(c *fiber.Ctx) error {
+func (h *Handler) ResolveShortURL(c *fiber.Ctx) error {
 	key := c.Params("key")
-	db, err := data.GetDB()
-	if err != nil {
-		log.Printf("Error getting DB instance: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Internal server error",
-		})
-	}
-	value, err := db.Get(key)
+	value, err := h.store.Get(c.UserContext(), key)
 	if err != nil {
 		value = "https://www.google.com/search?q=" + key
 	}
@@ -48,15 +57,7 @@ func ResolveShortURL(c *fiber.Ctx) error {
 // @Param url body request true "URL"
 // @Success 201 {string} string "Created"
 // @Router / [post]
-func CreateShortURL(c *fiber.Ctx) error {
-	db, err := data.GetDB()
-	if err != nil {
-		log.Printf("Error getting DB instance: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Internal server error",
-		})
-	}
+func (h *Handler) CreateShortURL(c *fiber.Ctx) error {
 	body := new(request)
 	if err := c.BodyParser(&body); err != nil {
 		log.Printf("Error parsing request body: %v", err)
@@ -72,7 +73,7 @@ func CreateShortURL(c *fiber.Ctx) error {
 		})
 	}
 	body.Url = helper.EnforceHTTP(body.Url)
-	err = db.Set(body.Short, body.Url)
+	err := h.store.Set(c.UserContext(), body.Short, body.Url)
 	if err != nil {
 		log.Printf("Error setting value for key %s: %v", body.Short, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -92,17 +93,9 @@ func CreateShortURL(c *fiber.Ctx) error {
 // @Param key path string true "Key"
 // @Success 200 {string} string "OK"
 // @Router /{key} [delete]
-func DeleteShortURL(c *fiber.Ctx) error {
-	db, err := data.GetDB()
-	if err != nil {
-		log.Printf("Error getting DB instance: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Internal server error",
-		})
-	}
+func (h *Handler) DeleteShortURL(c *fiber.Ctx) error {
 	key := c.Params("key")
-	err = db.Delete(key)
+	err := h.store.Delete(c.UserContext(), key)
 	if err != nil {
 		log.Printf("Error deleting key %s: %v", key, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -120,16 +113,9 @@ func DeleteShortURL(c *fiber.Ctx) error {
 // @Produce json
 // @Success 200 {string} string "OK"
 // @Router /allkv [get]
-func GetAllKV(c *fiber.Ctx) error {
-	db, err := data.GetDB()
-	if err != nil {
-		log.Printf("Error getting DB instance: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Internal server error",
-		})
-	}
-	kvs, err := db.GetAllKeyValues()
+
+func (h *Handler) GetAllKV(c *fiber.Ctx) error {
+	kvs, err := h.store.GetAllKeyValues(c.UserContext())
 	if err != nil {
 		log.Printf("Error getting key-value pairs: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

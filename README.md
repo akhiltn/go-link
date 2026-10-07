@@ -31,7 +31,7 @@
 
 3. **Run the application:**
     ```sh
-    go run main.go
+    go run ./cmd/go-link
     ```
 
 ## Usage
