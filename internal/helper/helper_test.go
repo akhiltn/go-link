@@ -38,8 +38,11 @@ func TestRemoveDomainError(t *testing.T) {
 		args args
 		want bool
 	}{
-		{"RemoveDomainError", args{"http://localhost:3000", "localhost"}, true},
-		{"RemoveDomainError", args{"https://localhost:3000", "localhost"}, true},
+		{"RemoveDomainError", args{"http://localhost:3000", "localhost"}, false},
+		{"RemoveDomainError", args{"https://localhost:3000", "localhost"}, false},
+		{"RemoveDomainError", args{"http://localhost/path", "localhost"}, false},
+		{"RemoveDomainError", args{"https://www.localhost?next=/", "localhost"}, false},
+		{"RemoveDomainError", args{"https://localhost#fragment/path", "localhost"}, false},
 		{"RemoveDomainError", args{"localhost:3000", ""}, true},
 		{"RemoveDomainError", args{"localhost", "localhost"}, false},
 		{"RemoveDomainError", args{"www.localhost", ""}, true},
