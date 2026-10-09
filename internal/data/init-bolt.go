@@ -67,6 +67,9 @@ func (b *BoltDB) Get(ctx context.Context, key string) (string, error) {
 	}
 	var value string
 	err := b.db.View(func(tx *bolt.Tx) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		bucket := tx.Bucket([]byte(dbname))
 		if bucket == nil {
 			return bolt.ErrBucketNotFound
@@ -86,6 +89,9 @@ func (b *BoltDB) Set(ctx context.Context, key string, value string) error {
 		return err
 	}
 	return b.db.Update(func(tx *bolt.Tx) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		bucket, err := tx.CreateBucketIfNotExists([]byte(dbname))
 		if err != nil {
 			return err
@@ -99,6 +105,9 @@ func (b *BoltDB) Delete(ctx context.Context, key string) error {
 		return err
 	}
 	return b.db.Update(func(tx *bolt.Tx) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		bucket := tx.Bucket([]byte(dbname))
 		if bucket == nil {
 			return bolt.ErrBucketNotFound
@@ -113,14 +122,21 @@ func (b *BoltDB) GetAllKeyValues(ctx context.Context) (map[string]string, error)
 	}
 	var kvMap map[string]string
 	err := b.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(dbname))
-		if bucket == nil {
-			return bolt.ErrBucketNotFound
+		if err := ctx.Err(); err != nil {
+			return err
 		}
-		kvMap = make(map[string]string, bucket.Stats().KeyN)
-		return bucket.ForEach(func(k, v []byte) error {
-			kvMap[string(k)] = string(v)
-			return nil
+		kvMap = make(map[string]string)
+		return tx.ForEach(func(name []byte, bucket *bolt.Bucket) error {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			return bucket.ForEach(func(k, v []byte) error {
+				if err := ctx.Err(); err != nil {
+					return err
+				}
+				kvMap[string(k)] = string(v)
+				return nil
+			})
 		})
 	})
 	return kvMap, err

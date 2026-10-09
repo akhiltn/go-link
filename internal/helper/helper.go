@@ -1,6 +1,7 @@
 package helper
 
 import (
+	neturl "net/url"
 	"os"
 	"strings"
 )
@@ -13,13 +14,26 @@ func EnforceHTTP(url string) string {
 }
 
 func RemoveDomainError(url string) bool {
-	newURL := strings.Replace(url, "http://", "", 1)
-	newURL = strings.Replace(url, "https://", "", 1)
-	newURL = strings.Replace(url, "www.", "", 1)
-	newURL = strings.Replace(url, "www.", "", 1)
-	newURL = strings.Split(newURL, "/")[0]
-	if strings.ToUpper(newURL) == strings.ToUpper(os.Getenv("DOMAIN")) {
-		return false
+	parsed, err := neturl.Parse(url)
+	if err != nil {
+		return true
 	}
-	return true
+	scheme := strings.ToLower(parsed.Scheme)
+	if parsed.Hostname() == "" {
+		parsed, err = neturl.Parse("//" + url)
+		if err != nil {
+			return true
+		}
+		scheme = ""
+	}
+	if scheme != "" && scheme != "http" && scheme != "https" {
+		return true
+	}
+	host := strings.TrimPrefix(strings.ToLower(parsed.Hostname()), "www.")
+	domainURL, err := neturl.Parse("//" + strings.TrimSpace(os.Getenv("DOMAIN")))
+	if err != nil {
+		return true
+	}
+	domain := strings.TrimPrefix(strings.ToLower(domainURL.Hostname()), "www.")
+	return host == "" || domain == "" || host != domain
 }
