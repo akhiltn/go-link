@@ -18,13 +18,22 @@ func RemoveDomainError(url string) bool {
 	if err != nil {
 		return true
 	}
-	if parsed.Hostname() == "" && parsed.Scheme == "" {
+	scheme := strings.ToLower(parsed.Scheme)
+	if parsed.Hostname() == "" {
 		parsed, err = neturl.Parse("//" + url)
 		if err != nil {
 			return true
 		}
+		scheme = ""
+	}
+	if scheme != "" && scheme != "http" && scheme != "https" {
+		return true
 	}
 	host := strings.TrimPrefix(strings.ToLower(parsed.Hostname()), "www.")
-	domain := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(os.Getenv("DOMAIN"))), "www.")
+	domainURL, err := neturl.Parse("//" + strings.TrimSpace(os.Getenv("DOMAIN")))
+	if err != nil {
+		return true
+	}
+	domain := strings.TrimPrefix(strings.ToLower(domainURL.Hostname()), "www.")
 	return host == "" || domain == "" || host != domain
 }
