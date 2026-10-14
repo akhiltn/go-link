@@ -7,7 +7,6 @@ definitions:
       url:
         type: string
     type: object
-host: localhost:3100
 info:
   contact:
     email: fiber@swagger.io
@@ -70,14 +69,14 @@ paths:
       produces:
       - application/json
       responses:
-        "301":
-          description: Moved Permanently
+        "302":
+          description: Found
           schema:
             type: string
       summary: Redirect to the original URL.
       tags:
       - api
-  /allkv:
+  /api/allkv:
     get:
       description: Get all key-value pairs.
       produces:

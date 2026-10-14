@@ -54,7 +54,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/allkv": {
+        "/api/allkv": {
             "get": {
                 "description": "Get all key-value pairs.",
                 "produces": [
@@ -94,8 +94,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "301": {
-                        "description": "Moved Permanently",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -149,7 +149,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3100",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Go Link",

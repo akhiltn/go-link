@@ -14,7 +14,6 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:3100",
     "basePath": "/",
     "paths": {
         "/": {
@@ -48,7 +47,7 @@
                 }
             }
         },
-        "/allkv": {
+        "/api/allkv": {
             "get": {
                 "description": "Get all key-value pairs.",
                 "produces": [
@@ -88,8 +87,8 @@
                     }
                 ],
                 "responses": {
-                    "301": {
-                        "description": "Moved Permanently",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
