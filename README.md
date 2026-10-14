@@ -59,37 +59,32 @@ Repeat this if you recreate the machine with `podman machine rm`.
 
 ### Build and run
 ```sh
-# Pull base images beforehand (avoids registry/proxy issues during the build)
-podman pull golang:1.23-alpine
-podman pull alpine:3.20
-
 # Run tests in a clean container (optional)
-podman build --target test .
+make container-test
 
 # Build the final image
-podman build -t go-link .
+make image
 
 # Run it (data is persisted in the golink-data volume)
-podman run -p 3000:3000 -e DOMAIN=localhost -v golink-data:/data go-link
+make run
 ```
 
-Environment variables: `APP_PORT` (default `3000`), `DB_PATH` (default `/data/go-link.db`), `DOMAIN`.
+The Makefile defaults to Podman. Override `CONTAINER_ENGINE=docker` to use Docker, or
+`DOMAIN`, `PORT`, and `DATA_VOLUME` to change the runtime settings. The application
+environment variables are `APP_PORT` (default `3000`), `DB_PATH` (default
+`/data/go-link.db`), and `DOMAIN`.
 
 ### Hot reload (development)
 
-The `dev` stage runs [air](https://github.com/air-verse/air), which rebuilds and restarts the app when source files change. The image doesn't contain air: build a Linux copy on your Mac (use `amd64` on Intel Macs) and mount it together with the source:
+The `dev` stage runs [air](https://github.com/air-verse/air), which rebuilds and restarts the app when source files change:
 ```sh
-GOOS=linux GOARCH=arm64 go install github.com/air-verse/air@latest   # -> $(go env GOPATH)/bin/linux_arm64/air
-
-podman build --target dev -t go-link:dev .
-podman run -p 3000:3000 -e DOMAIN=localhost \
-  -v "$PWD":/src -v golink-data:/data \
-  -v "$(go env GOPATH)/bin/linux_arm64/air":/usr/local/bin/air:ro \
-  go-link:dev
+make dev
 ```
+- `make dev` builds a static Linux Air binary and mounts it into the development
+  image. It assumes the container image architecture matches the host architecture.
 - `-v "$PWD":/src` lets air see your edits.
 - `-v golink-data:/data` keeps the BoltDB file between restarts. Only one container can use it at a time (file lock), so stop other `go-link` containers first.
-- The air binary is mounted because a macOS binary can't run in the Linux container.
+- The Air binary is mounted because the development image does not contain it.
 - air polls for changes (`-build.poll true`) because file events are unreliable on macOS bind mounts.
 
 ## Usage
