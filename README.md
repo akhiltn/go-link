@@ -87,6 +87,38 @@ make dev
 - The Air binary is mounted because the development image does not contain it.
 - air polls for changes (`-build.poll true`) because file events are unreliable on macOS bind mounts.
 
+### Start at user login
+
+Build the production image, create the systemd user service, then enable it:
+
+```sh
+make image
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/go-link.service <<'EOF'
+[Unit]
+Description=go-link URL shortener
+
+[Service]
+ExecStart=/usr/bin/podman run --rm --name go-link --replace \
+    -p 3000:3000 \
+    --env DOMAIN=localhost \
+    --volume golink-data:/data \
+    go-link
+ExecStop=-/usr/bin/podman stop --time 10 go-link
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+systemctl --user daemon-reload
+systemctl --user enable --now go-link
+```
+
+The service starts at login, runs the `go-link` image with the `golink-data`
+volume, and restarts after a failure. To start it at system boot before login,
+run `loginctl enable-linger "$USER"`.
+
 ## Usage
 
 ### API Endpoints
