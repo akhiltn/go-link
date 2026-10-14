@@ -3,11 +3,26 @@ package api
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/akhiltn/go-link/internal/helper"
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 )
+
+// reservedKeys are served by fixed routes (/api/*, /swagger/*) that must never
+// be shadowed by, or shadow, a user's short key.
+var reservedKeys = []string{"api", "swagger"}
+
+// isReservedKey is case-insensitive because Fiber routing is too.
+func isReservedKey(key string) bool {
+	for _, r := range reservedKeys {
+		if strings.EqualFold(key, r) {
+			return true
+		}
+	}
+	return false
+}
 
 type request struct {
 	Url   string `json:"url"`
@@ -37,7 +52,7 @@ func NewHandler(store Store) *Handler {
 // @Tags api
 // @Produce json
 // @Param key path string true "Key"
-// @Success 301 {string} string "Moved Permanently"
+// @Success 302 {string} string "Found"
 // @Router /{key} [get]
 func (h *Handler) ResolveShortURL(c *fiber.Ctx) error {
 	key := c.Params("key")
@@ -46,7 +61,7 @@ func (h *Handler) ResolveShortURL(c *fiber.Ctx) error {
 		value = "https://www.google.com/search?q=" + key
 	}
 	log.Printf("Redirecting to: %s", value)
-	return c.Redirect(value, fiber.StatusMovedPermanently)
+	return c.Redirect(value, fiber.StatusFound)
 }
 
 // CreateShortURL method to create a short URL.
@@ -73,6 +88,12 @@ func (h *Handler) CreateShortURL(c *fiber.Ctx) error {
 		})
 	}
 	body.Url = helper.EnforceHTTP(body.Url)
+	if isReservedKey(body.Short) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Short key is reserved",
+		})
+	}
 	err := h.store.Set(c.UserContext(), body.Short, body.Url)
 	if err != nil {
 		log.Printf("Error setting value for key %s: %v", body.Short, err)
@@ -112,8 +133,7 @@ func (h *Handler) DeleteShortURL(c *fiber.Ctx) error {
 // @Tags api
 // @Produce json
 // @Success 200 {string} string "OK"
-// @Router /allkv [get]
-
+// @Router /api/allkv [get]
 func (h *Handler) GetAllKV(c *fiber.Ctx) error {
 	kvs, err := h.store.GetAllKeyValues(c.UserContext())
 	if err != nil {
