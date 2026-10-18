@@ -5,8 +5,11 @@ services:
       target: runtime
     environment:
       APP_PORT: "3000"
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      DATABASE_URL: ${DATABASE_URL:-valkey:6379}
       DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      valkey:
+        condition: service_healthy
     ports:
       - "${PORT:-3000}:3000"
     restart: unless-stopped
@@ -16,6 +19,11 @@ services:
     command: ["valkey-server", "--appendonly", "yes"]
     volumes:
       - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   valkey-data:

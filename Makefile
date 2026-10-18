@@ -1,4 +1,6 @@
-CONTAINER_ENGINE ?= podman
+CONTAINER_ENGINE ?= $(shell if [ -x /usr/bin/podman ]; then printf /usr/bin/podman; else command -v podman; fi)
+PODMAN_PATH ?= $(CONTAINER_ENGINE)
+COMPOSE ?= podman-compose --podman-path $(PODMAN_PATH)
 IMAGE ?= go-link
 DEV_IMAGE ?= $(IMAGE):dev
 DATA_VOLUME ?= golink-data
@@ -20,9 +22,8 @@ container-test: ## Run tests in the Dockerfile test stage
 image: ## Build the production container image
 	$(CONTAINER_ENGINE) build --build-arg VERSION=$(VERSION) -t $(IMAGE) .
 
-run: image ## Run the production container image
-	$(CONTAINER_ENGINE) run --rm -p $(PORT):3000 -e DOMAIN=$(DOMAIN) \
-		-v $(DATA_VOLUME):/data $(IMAGE)
+run: ## Build and run the application with Valkey
+	$(COMPOSE) up --build
 
 air: ## Build a static Air binary for the development container
 	CGO_ENABLED=0 go install github.com/air-verse/air@latest

@@ -117,14 +117,18 @@ func (p *postgresDB) Delete(ctx context.Context, key string) error {
 	return err
 }
 
-func (p *postgresDB) GetAllKeyValues(ctx context.Context) (map[string]string, error) {
+func (p *postgresDB) GetAllKeyValues(ctx context.Context) (values map[string]string, err error) {
 	rows, err := p.db.QueryContext(ctx, "SELECT short_key, target_url FROM short_url_mappings")
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			err = errors.Join(err, closeErr)
+		}
+	}()
 
-	values := make(map[string]string)
+	values = make(map[string]string)
 	for rows.Next() {
 		var key, value string
 		if err := rows.Scan(&key, &value); err != nil {
