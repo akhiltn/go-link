@@ -2,25 +2,25 @@ package helper
 
 import (
 	neturl "net/url"
-	"os"
 	"strings"
 )
 
 func EnforceHTTP(url string) string {
-	if !strings.HasPrefix(url, "http") {
+	lowercaseURL := strings.ToLower(url)
+	if !strings.HasPrefix(lowercaseURL, "http://") && !strings.HasPrefix(lowercaseURL, "https://") {
 		return "http://" + url
 	}
 	return url
 }
 
-func RemoveDomainError(url string) bool {
-	parsed, err := neturl.Parse(url)
+func RemoveDomainError(rawURL, domain string) bool {
+	parsed, err := neturl.Parse(rawURL)
 	if err != nil {
 		return true
 	}
 	scheme := strings.ToLower(parsed.Scheme)
 	if parsed.Hostname() == "" {
-		parsed, err = neturl.Parse("//" + url)
+		parsed, err = neturl.Parse("//" + rawURL)
 		if err != nil {
 			return true
 		}
@@ -30,10 +30,10 @@ func RemoveDomainError(url string) bool {
 		return true
 	}
 	host := strings.TrimPrefix(strings.ToLower(parsed.Hostname()), "www.")
-	domainURL, err := neturl.Parse("//" + strings.TrimSpace(os.Getenv("DOMAIN")))
+	domainURL, err := neturl.Parse("//" + strings.TrimSpace(domain))
 	if err != nil {
 		return true
 	}
-	domain := strings.TrimPrefix(strings.ToLower(domainURL.Hostname()), "www.")
-	return host == "" || domain == "" || host != domain
+	normalizedDomain := strings.TrimPrefix(strings.ToLower(domainURL.Hostname()), "www.")
+	return host == "" || normalizedDomain == "" || host != normalizedDomain
 }

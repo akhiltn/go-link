@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"os"
 	"testing"
 )
 
@@ -16,6 +15,8 @@ func TestEnforceHTTP(t *testing.T) {
 	}{
 		{"EnforceHTTP", args{"http://localhost:3000"}, "http://localhost:3000"},
 		{"EnforceHTTP", args{"https://localhost:3000"}, "https://localhost:3000"},
+		{"EnforceHTTP", args{"HTTP://localhost:3000"}, "HTTP://localhost:3000"},
+		{"EnforceHTTP", args{"HTTPS://localhost:3000"}, "HTTPS://localhost:3000"},
 		{"EnforceHTTP", args{"localhost:3000"}, "http://localhost:3000"},
 		{"EnforceHTTP", args{"localhost"}, "http://localhost"},
 	}
@@ -51,8 +52,7 @@ func TestRemoveDomainError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("DOMAIN", tt.args.domain)
-			if got := RemoveDomainError(tt.args.url); got != tt.want {
+			if got := RemoveDomainError(tt.args.url, tt.args.domain); got != tt.want {
 				t.Errorf("RemoveDomainError() = %v, want %v", got, tt.want)
 				t.Errorf("Test Case: %v", tt)
 			}

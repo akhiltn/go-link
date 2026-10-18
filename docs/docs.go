@@ -76,7 +76,7 @@ const docTemplate = `{
         },
         "/{key}": {
             "get": {
-                "description": "Redirect to the original URL.",
+                "description": "Redirect to the original URL (302). With \"Accept: application/json\" (e.g. Swagger \"Try it out\") the target is returned as JSON instead of redirecting.",
                 "produces": [
                     "application/json"
                 ],
@@ -94,6 +94,15 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Key and target URL (JSON clients)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "302": {
                         "description": "Found",
                         "schema": {

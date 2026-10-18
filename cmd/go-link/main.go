@@ -1,17 +1,15 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/akhiltn/go-link/docs"
+	"github.com/akhiltn/go-link/internal/app"
 	"github.com/akhiltn/go-link/internal/data"
-	"github.com/akhiltn/go-link/internal/routes"
-	"github.com/akhiltn/go-link/internal/shorturl"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
-	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 )
 
@@ -25,32 +23,32 @@ import (
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @BasePath /
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Error loading .env file")
 	}
-	db, err := data.OpenBoltDB(os.Getenv("DB_PATH"))
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	db, err := data.New(ctx, data.Valkey, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer db.Close()
-	service := shorturl.NewService(db)
-	app := fiber.New()
-	// Configure CORS settings
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, http://localhost:8080", // Allow localhost origins
-		AllowMethods: "GET, POST, PUT, DELETE",                       // Allowed methods
-		AllowHeaders: "Origin, Content-Type, Accept",                 // Allowed headers
-	}))
-	app.Get("/swagger/*", swagger.HandlerDefault)
-	app.Use(healthcheck.New())
-	routes.AppRouteInit(app, service)
+
+	server := app.New(db, app.Config{Domain: os.Getenv("DOMAIN")})
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "3000" // Default port if not set
 	}
 	log.Printf("Server started on port %s", port)
-	if err := app.Listen(":" + port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	if err := server.Listen(":" + port); err != nil {
+		return fmt.Errorf("failed to start server: %w", err)
 	}
+	return nil
 }

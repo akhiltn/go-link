@@ -59,7 +59,8 @@ paths:
       tags:
       - api
     get:
-      description: Redirect to the original URL.
+      description: 'Redirect to the original URL (302). With "Accept: application/json"
+        (e.g. Swagger "Try it out") the target is returned as JSON instead of redirecting.'
       parameters:
       - description: Key
         in: path
@@ -69,6 +70,12 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: Key and target URL (JSON clients)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "302":
           description: Found
           schema:

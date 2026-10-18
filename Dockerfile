@@ -1,29 +1,29 @@
 # syntax=docker/dockerfile:1
 
-# ---- base: toolchain + sources (deps are vendored) ----
+# ---- base: toolchain + sources ----
 FROM golang:1.23-alpine AS base
 WORKDIR /src
 COPY go.mod go.sum ./
-COPY vendor ./vendor
+RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 COPY docs ./docs
 
-# ---- test: run with `docker build --target test .` ----
+# ---- test: run with `podman build --target test .` ----
 FROM base AS test
-RUN go test -mod=vendor ./...
+RUN go test ./...
 
 # ---- dev: hot reload; mount source at /src and a linux air binary at /usr/local/bin/air ----
 FROM base AS dev
 ENV DB_PATH=/data/go-link.db
 EXPOSE 3000
-CMD ["air", "-build.cmd", "go build -mod=vendor -o /tmp/go-link ./cmd/go-link", "-build.bin", "/tmp/go-link", "-build.poll", "true"]
+CMD ["air", "-build.cmd", "go build -o /tmp/go-link ./cmd/go-link", "-build.bin", "/tmp/go-link", "-build.poll", "true"]
 
 # ---- build: static binary ----
 FROM base AS build
 ARG VERSION=dev
 ENV CGO_ENABLED=0
-RUN go build -mod=vendor -trimpath \
+RUN go build -trimpath \
     -ldflags="-s -w -X main.version=${VERSION}" \
     -o /out/go-link ./cmd/go-link
 

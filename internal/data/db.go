@@ -1,12 +1,41 @@
+// Package data provides PostgreSQL-backed persistence for short URLs.
 package data
 
-import "github.com/boltdb/bolt"
+import (
+	"context"
+	"errors"
+	"fmt"
+)
 
-// BoltDB adapts BoltDB to the short URL repository interface.
-type BoltDB struct {
-	db *bolt.DB
+var ErrNotFound = errors.New("short URL not found")
+
+// Driver identifies a database implementation.
+type Driver string
+
+const (
+	// Postgres selects the PostgreSQL database implementation.
+	Postgres Driver = "postgres"
+	// Valkey selects the Valkey database implementation.
+	Valkey Driver = "valkey"
+)
+
+// DB combines short URL persistence operations with database lifecycle management.
+type DB interface {
+	Get(context.Context, string) (string, error)
+	Set(context.Context, string, string) error
+	Delete(context.Context, string) error
+	GetAllKeyValues(context.Context) (map[string]string, error)
+	Close() error
 }
 
-func (b *BoltDB) Close() error {
-	return b.db.Close()
+// New creates a database implementation for the selected driver.
+func New(ctx context.Context, driver Driver, databaseURL string) (DB, error) {
+	switch driver {
+	case Postgres:
+		return NewPostgresDB(ctx, databaseURL)
+	case Valkey:
+		return NewValkeyDB(ctx, databaseURL)
+	default:
+		return nil, fmt.Errorf("unsupported database driver %q", driver)
+	}
 }

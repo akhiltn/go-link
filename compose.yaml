@@ -1,0 +1,21 @@
+services:
+  go-link:
+    build:
+      context: .
+      target: runtime
+    environment:
+      APP_PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped
+
+  valkey:
+    image: docker.io/valkey/valkey:8-alpine
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkey-data:/data
+
+volumes:
+  valkey-data:
